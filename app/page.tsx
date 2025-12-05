@@ -5,6 +5,10 @@ import { Wallet } from "@coinbase/onchainkit/wallet";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 // import { useQuickAuth } from "@coinbase/onchainkit/minikit";
 import styles from "./page.module.css";
+// @noErrors: 1109 - Cannot find name 'contracts'
+import { Transaction } from "@coinbase/onchainkit/transaction"
+import { calls } from "../components/Payment";
+
 
 export default function Home() {
   // If you need to verify the user's identity, you can use the useQuickAuth hook.
@@ -17,7 +21,6 @@ export default function Home() {
   // }>("/api/auth");
 
   const { setMiniAppReady, isMiniAppReady } = useMiniKit();
-
   useEffect(() => {
     if (!isMiniAppReady) {
       setMiniAppReady();
@@ -76,6 +79,10 @@ export default function Home() {
             </li>
           ))}
         </ul>
+        
+        
+
+        <Transaction calls={calls} />
       </div>
     </div>
   );
