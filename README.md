@@ -1,27 +1,39 @@
-# Base Mini App Demo
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-onchain`](https://www.npmjs.com/package/create-onchain).
 
-A demo [mini app](https://miniapps.farcaster.xyz) to demonstrate the functionality available for mini app developers in [Base App](https://base.app).
-
-Note: this Base Mini App Demo used to live [here](https://github.com/Vicolee/frames-v2-demo) and was recently moved to this `base/demos` repo so it can be more easily found
 
 ## Getting Started
 
-This is a [NextJS](https://nextjs.org/) + TypeScript + React app.
-
-To install dependencies:
+First, install dependencies:
 
 ```bash
-$ yarn
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
 ```
 
-To run the app:
+Next, run the development server:
 
 ```bash
-$ yarn dev
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-To test your mini app in Farcaster's playground or in Base App, you'll want to use a tunneling tool like [ngrok](https://ngrok.com/)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Relevant Links
-- [Mini Apps in Base App Docs](https://docs.base.org/base-app/introduction/mini-apps)
-- [MiniKit Docs](https://docs.base.org/base-app/build-with-minikit/overview)
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+
+## Learn More
+
+To learn more about OnchainKit, see our [documentation](https://docs.base.org/onchainkit).
+
+To learn more about Next.js, see the [Next.js documentation](https://nextjs.org/docs).
