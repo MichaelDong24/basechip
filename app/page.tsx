@@ -6,9 +6,7 @@ import { useMiniKit } from "@coinbase/onchainkit/minikit";
 // import { useQuickAuth } from "@coinbase/onchainkit/minikit";
 import styles from "./page.module.css";
 // @noErrors: 1109 - Cannot find name 'contracts'
-import { Transaction } from "@coinbase/onchainkit/transaction"
-import { calls } from "../components/Payment";
-
+import { Payment } from "../components/Payment";
 
 export default function Home() {
   // If you need to verify the user's identity, you can use the useQuickAuth hook.
@@ -79,10 +77,7 @@ export default function Home() {
             </li>
           ))}
         </ul>
-        
-        
-
-        <Transaction calls={calls} />
+        <button onClick={() => Payment('.01', '0x083E19e8ad35709717c57454E777986DC87fCbbb')}>Pay</button>
       </div>
     </div>
   );

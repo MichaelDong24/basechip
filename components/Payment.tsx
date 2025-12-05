@@ -1,19 +1,15 @@
-const clickContractAddress = '0x67c97D1FB8184F038592b2109F854dfb09C77C75';
-const clickContractAbi = [
-  {
-    type: 'function',
-    name: 'click',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-] as const;
+import { base } from '@base-org/account'
 
-export const calls = [
-  {
-    address: clickContractAddress,
-    abi: clickContractAbi,
-    functionName: 'click',
-    args: [],
+export async function Payment(amount: string, to: string) {
+  try {
+    const result = await base.pay({
+      amount: amount,
+      to: to,
+      testnet: false
+    })
+    
+    return result;
+  } catch (error) {
+    throw error;
   }
-];
+}
