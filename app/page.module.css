@@ -1,39 +1,63 @@
 .container {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-height: 100vh;
-}
-
-.headerWrapper {
-  display: flex;
-  justify-content: flex-end;
-  padding: 1rem;
-}
-
-.content {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 8px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.error {
+  color: #b42318;
+}
+
+.muted {
+  color: #666;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.inlineField {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.squareButton {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding-bottom: 5vh;
+  padding: 0;
 }
 
-.title {
-  font-size: clamp(2rem, 8vw, 80px);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.componentsTitle {
-  font-weight: 600;
-  margin-top: 2rem;
-}
-
-.components {
-  list-style-type: disc;
-  margin-top: 0.75rem;
-}
-
-.components a:hover {
-  text-decoration: underline;
+.scanner {
+  width: 280px;
+  height: 280px;
+  background: #000;
+  object-fit: cover;
 }

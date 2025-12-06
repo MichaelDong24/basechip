@@ -1,84 +1,211 @@
 "use client";
-import { useEffect } from "react";
-import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
-// import { useQuickAuth } from "@coinbase/onchainkit/minikit";
+import { useAccount } from "wagmi";
+import { Modal } from "@/components/Modal";
+import { Camera } from "@/components/Camera";
+import { Button } from "@/components/Button";
+import { createLobby, joinLobby, normalizeCode } from "@/lib/lobbyClient";
 import styles from "./page.module.css";
-// @noErrors: 1109 - Cannot find name 'contracts'
-import { Payment } from "../components/Payment";
+
+function shortenAddress(value?: string | null): string | null {
+  if (!value) return null;
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+
+function formatError(err: unknown, fallback: string) {
+  if (err instanceof Error) return err.message;
+  if (
+    err &&
+    typeof err === "object" &&
+    "message" in err &&
+    typeof (err as any).message === "string"
+  ) {
+    return (err as any).message as string;
+  }
+  if (typeof err === "string") return err;
+  return fallback;
+}
 
 export default function Home() {
-  // If you need to verify the user's identity, you can use the useQuickAuth hook.
-  // This hook will verify the user's signature and return the user's FID. You can update
-  // this to meet your needs. See the /app/api/auth/route.ts file for more details.
-  // Note: If you don't need to verify the user's identity, you can get their FID and other user data
-  // via `useMiniKit().context?.user`.
-  // const { data, isLoading, error } = useQuickAuth<{
-  //   userFid: string;
-  // }>("/api/auth");
+  const router = useRouter();
+  const { address, isConnected } = useAccount();
+  const { context, setMiniAppReady, isMiniAppReady } = useMiniKit();
 
-  const { setMiniAppReady, isMiniAppReady } = useMiniKit();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fid = context?.user?.fid ? String(context.user.fid) : null;
+  const username =
+    context?.user?.username || context?.user?.displayName || null;
+  const userId = fid ?? (address ? `wallet:${address.toLowerCase()}` : null);
+  const userLabel = username
+    ? `Signed in as @${username}`
+    : fid
+    ? `FID ${fid}`
+    : userId
+    ? `Wallet user ${shortenAddress(address)}`
+    : "Not in mini app";
+
   useEffect(() => {
     if (!isMiniAppReady) {
       setMiniAppReady();
     }
-  }, [setMiniAppReady, isMiniAppReady]);
+  }, [isMiniAppReady, setMiniAppReady]);
+
+  const identityReady = isMiniAppReady && Boolean(userId) && isConnected;
+  const identityHint = useMemo(() => {
+    if (!isMiniAppReady) return "Waiting for mini app to be ready...";
+    if (!userId)
+      return "Open inside the Base app and connect your wallet to continue.";
+    if (!isConnected) return "Connect your wallet to start.";
+    return null;
+  }, [userId, isConnected, isMiniAppReady]);
+
+  const handleCreateLobby = async () => {
+    if (!userId) {
+      setError("Missing user. Open the Base app and connect your wallet.");
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const lobby = await createLobby({
+        ownerFid: userId,
+        ownerWallet: address,
+      });
+      setShowCreateModal(false);
+      router.push(`/lobby/${lobby.code}`);
+    } catch (err) {
+      setError(formatError(err, "Failed to create lobby."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleJoinLobby = async (codeOverride?: string) => {
+    if (isSubmitting) return;
+    if (!userId) {
+      setError("Missing user. Open the Base app and connect your wallet.");
+      return;
+    }
+    const code = normalizeCode(codeOverride ?? joinCode);
+    if (!code) {
+      setError("Enter or scan a lobby code.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await joinLobby({
+        code,
+        fid: userId,
+        walletAddress: address,
+      });
+      setShowJoinModal(false);
+      router.push(`/lobby/${code}`);
+    } catch (err) {
+      setError(formatError(err, "Failed to join lobby."));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
-      <header className={styles.headerWrapper}>
+      <header className={styles.header}>
+        <div>
+          <p>{userLabel}</p>
+          <p>
+            {address ? `Wallet ${shortenAddress(address)}` : "Connect a wallet"}
+          </p>
+        </div>
         <Wallet />
       </header>
 
-      <div className={styles.content}>
-        <Image
-          priority
-          src="/sphere.svg"
-          alt="Sphere"
-          width={200}
-          height={200}
-        />
-        <h1 className={styles.title}>MiniKit</h1>
+      <main className={styles.main}>
+        <h1>Basechip lobby</h1>
+        <p>Start a room or join with a code.</p>
 
-        <p>
-          Get started by editing <code>app/page.tsx</code>
-        </p>
+        {identityHint && <p className={styles.muted}>{identityHint}</p>}
 
-        <h2 className={styles.componentsTitle}>Explore Components</h2>
+        <div className={styles.actions}>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            disabled={!identityReady}
+          >
+            Create game
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setShowJoinModal(true)}
+            disabled={!identityReady}
+          >
+            Join game
+          </Button>
+        </div>
 
-        <ul className={styles.components}>
-          {[
-            {
-              name: "Transaction",
-              url: "https://docs.base.org/onchainkit/transaction/transaction",
-            },
-            {
-              name: "Swap",
-              url: "https://docs.base.org/onchainkit/swap/swap",
-            },
-            {
-              name: "Checkout",
-              url: "https://docs.base.org/onchainkit/checkout/checkout",
-            },
-            {
-              name: "Wallet",
-              url: "https://docs.base.org/onchainkit/wallet/wallet",
-            },
-            {
-              name: "Identity",
-              url: "https://docs.base.org/onchainkit/identity/identity",
-            },
-          ].map((component) => (
-            <li key={component.name}>
-              <a target="_blank" rel="noreferrer" href={component.url}>
-                {component.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <button onClick={() => Payment('.01', '0x083E19e8ad35709717c57454E777986DC87fCbbb')}>Pay</button>
-      </div>
+        {error && <p className={styles.error}>{error}</p>}
+      </main>
+
+      {showCreateModal && (
+        <Modal title="Create a lobby" onClose={() => setShowCreateModal(false)}>
+          <Button onClick={handleCreateLobby} disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Create and share code"}
+          </Button>
+        </Modal>
+      )}
+
+      {showJoinModal && (
+        <Modal title="Join a lobby" onClose={() => setShowJoinModal(false)}>
+          <div className={styles.field}>
+            <label htmlFor="lobbyCode">Enter lobby code</label>
+            <div className={styles.inlineField}>
+              <input
+                id="lobbyCode"
+                placeholder="ABC123"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+              />
+              <Button
+                className={styles.squareButton}
+                onClick={() => handleJoinLobby()}
+                disabled={isSubmitting}
+                aria-label="Join with code"
+              >
+                →
+              </Button>
+            </div>
+          </div>
+
+          <p>Or scan a QR code with your camera</p>
+          <Camera
+            className={styles.scanner}
+            onDecoded={(value) => {
+              const normalized = normalizeCode(value);
+              setJoinCode(normalized);
+              handleJoinLobby(normalized);
+            }}
+            onError={(scanError) =>
+              setError(
+                scanError instanceof Error
+                  ? scanError.message
+                  : "Unable to access camera."
+              )
+            }
+          />
+
+          <Button onClick={() => handleJoinLobby()} disabled={isSubmitting}>
+            {isSubmitting ? "Joining..." : "Join lobby"}
+          </Button>
+        </Modal>
+      )}
     </div>
   );
 }
